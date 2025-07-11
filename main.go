@@ -11,9 +11,20 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/hariyaki/GoLang-Marketplace-Project/internal/db"
 )
 
 func main() {
+
+	//Setup DB
+	dsn := os.Getenv("DB_DSN")
+	database, err := db.Open(dsn)
+	if err != nil {
+		log.Fatalf("db init: %v", err)
+	}
+	defer database.Close()
+
 	//Set up HTTP handlers
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
