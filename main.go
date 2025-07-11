@@ -13,6 +13,9 @@ import (
 	"time"
 
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/db"
+	"github.com/hariyaki/GoLang-Marketplace-Project/internal/listings"
+    "github.com/hariyaki/GoLang-Marketplace-Project/internal/handlers"
+
 )
 
 func main() {
@@ -20,16 +23,19 @@ func main() {
 	//Setup DB
 	dsn := os.Getenv("DB_DSN")
 	database, err := db.Open(dsn)
+	store := listings.NewStore(database)
 	if err != nil {
 		log.Fatalf("db init: %v", err)
 	}
 	defer database.Close()
 
 	//Set up HTTP handlers
-	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "ok")
-	})
+    mux := http.NewServeMux()
+    mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintln(w, "ok")
+    })
+    mux.Handle("/listings", handlers.PostListingHandler{Store: store})
+
 
 	//Create the server struct
 	server := &http.Server{
