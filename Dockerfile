@@ -1,15 +1,21 @@
-#build stage
-FROM golang:alpine AS builder
-RUN apk add --no-cache git
-WORKDIR /go/src/app
-COPY . .
-RUN go get -d -v ./...
-RUN go build -o /go/bin/app -v ./...
+# syntax=docker/dockerfile:1
 
-#final stage
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
-COPY --from=builder /go/bin/app /app
-ENTRYPOINT /app
-LABEL Name=golangmarketplaceproject Version=0.0.1
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /src
+
+# go modules first —> layer caching
+COPY go.mod go.sum ./
+RUN go mod download
+
+# rest of the source
+COPY . .
+
+# Compile only the cmd/api package
+RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/marketplace ./cmd/api
+
+FROM scratch
+
+COPY --from=builder /go/bin/marketplace /marketplace
 EXPOSE 8080
+ENTRYPOINT ["/marketplace"]
