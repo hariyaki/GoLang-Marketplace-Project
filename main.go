@@ -13,9 +13,8 @@ import (
 	"time"
 
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/db"
+	"github.com/hariyaki/GoLang-Marketplace-Project/internal/handlers"
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/listings"
-    "github.com/hariyaki/GoLang-Marketplace-Project/internal/handlers"
-
 )
 
 func main() {
@@ -30,12 +29,21 @@ func main() {
 	defer database.Close()
 
 	//Set up HTTP handlers
-    mux := http.NewServeMux()
-    mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintln(w, "ok")
-    })
-    mux.Handle("/listings", handlers.PostListingHandler{Store: store})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "ok")
+	})
+	mux.Handle("/listings", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handlers.PostListingHandler{Store: store}.ServeHTTP(w, r)
+		case http.MethodGet:
+			handlers.GetListingsHandler{Store: store}.ServeHTTP(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
 
+	}))
 
 	//Create the server struct
 	server := &http.Server{

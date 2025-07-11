@@ -35,3 +35,26 @@ func TestStore_Create(t *testing.T) {
 	require.Equal(t, want.Title, got.Title)
 	require.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestStore_List(t *testing.T) {
+	dbMock, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer dbMock.Close()
+
+	store := listings.NewStore(dbMock)
+
+	rows := sqlmock.NewRows([]string{"id", "title", "description", "price_jpy", "created_at"}).
+		AddRow(1, "t1", "d1", 100, "2025-07-10T00:00:00Z").
+		AddRow(2, "t2", "d2", 200, "2025-07-11T00:00:00Z")
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		"SELECT id, title, description, price_jpy, created_at FROM listings ORDER BY created_at DESC;",
+	)).WillReturnRows(rows)
+
+	got, err := store.List(context.Background())
+	require.NoError(t, err)
+	require.Len(t, got, 2)
+	require.Equal(t, int64(1), got[0].ID)
+	require.Equal(t, int64(2), got[1].ID)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
