@@ -1,14 +1,68 @@
+// cmd/api/main.go
 package main
 
 import (
-    "fmt"
-    "net/http"
+	"context"
+	"errors"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
-    http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintln(w, "ok")
-    })
-    fmt.Println("Server on :8080")
-    http.ListenAndServe(":8080", nil)
+	//Set up HTTP handlers
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "ok")
+	})
+
+	//Create the server struct
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      mux,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	//A channel used to confirm when ListenAndServe() has returned
+	idleConnsClosed := make(chan struct{})
+
+	//Start serving in a goroutine
+	//"Graceful Shutdown" Format is from https://dev.to/mokiat/proper-http-shutdown-in-go-3fji
+	go func() {
+		log.Println("HTTP server starting on", server.Addr)
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			// Any error other than ErrServerClosed is unexpected.
+			log.Fatalf("HTTP server error: %v", err)
+		}
+		log.Println("Stopped accepting new connections.")
+		close(idleConnsClosed)
+	}()
+
+	//Block until SIGINT or SIGTERM
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-sigChan
+	log.Printf("Caught signal %s. Shutting down…", sig)
+
+	//Perform graceful shutdown
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		// Graceful shutdown didn’t finish in time.
+		log.Printf("Shutdown timed out: %v. Forcing close.", err)
+		if err := server.Close(); err != nil {
+			log.Printf("Forced close failed: %v", err)
+		}
+	}
+
+	//Wait until ListenAndServe() has actually returned
+	<-idleConnsClosed
+	log.Println("Shutdown complete.")
 }
