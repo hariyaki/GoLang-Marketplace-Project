@@ -13,19 +13,13 @@ type GetListingsHandler struct {
 }
 
 func (h GetListingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	ctx := r.Context()
-	all, err := h.Store.List(ctx)
+	q := r.URL.Query().Get("q")
+	list, err := h.Store.ListByQuery(r.Context(), q)
 	if err != nil {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(all)
+	_ = json.NewEncoder(w).Encode(list)
 }
