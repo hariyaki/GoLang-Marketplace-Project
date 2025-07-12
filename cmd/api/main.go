@@ -30,9 +30,14 @@ func main() {
 
 	//Set up HTTP handlers
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "ok")
 	})
+
+	// Handle listings request
+	// Post = create
+	// Get = list / search
 	mux.Handle("/listings", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
@@ -42,7 +47,14 @@ func main() {
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
+	}))
 
+	mux.Handle("/listings", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		handlers.GetListingHandler{Store: store}.ServeHTTP(w, r)
 	}))
 
 	//Create the server struct
