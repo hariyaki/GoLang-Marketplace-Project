@@ -108,3 +108,39 @@ func (s *Store) List(ctx context.Context) ([]db.Listing, error) {
 	}
 	return out, nil
 }
+
+// GetByID returns either a single listing or sql.ErrNoRows
+func (s *Store) GetByID(ctx context.Context, id int64) (db.Listing, error) {
+	const q = `SELECT id,title,description,price_jpy,created_at FROM listings WHERE id=$1`
+	var l db.Listing
+	err := s.DB.QueryRowContext(ctx, q, id).
+		Scan(&l.ID, &l.Title, &l.Description, &l.PriceJPY, &l.CreatedAt)
+	return l, err
+}
+
+func (s *Store) ListByQuery(ctx context.Context, qstr string) ([]db.Listing, error) {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	if qstr == "" {
+		rows, err = s.DB.QueryContext(ctx,
+			`SELECT id,title,description,price_jpy,created_at
+			FROM listings WHERE title ILIKE '%'||$1||'%' ORDER BY created_at DESC`,
+			qstr)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []db.Listing
+	for rows.Next() {
+		var l db.Listing
+		if err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.PriceJPY, &l.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, l)
+	}
+	return out, rows.Err()
+}
