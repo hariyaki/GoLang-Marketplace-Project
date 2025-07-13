@@ -2,15 +2,18 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/hariyaki/GoLang-Marketplace-Project/internal/cache"
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/listings"
 )
 
 type GetListingHandler struct {
 	Store *listings.Store
+	Cache *cache.Cache
 }
 
 // GetListing godoc
@@ -23,6 +26,7 @@ type GetListingHandler struct {
 // @Failure      404  {string}  string  "not found"
 // @Failure      500  {string}  string  "database error"
 // @Router       /listings/{id} [get]
+// @Header 		 200 {string} X-Cache  "HIT or MISS"
 func (h GetListingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/listings/")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -32,6 +36,14 @@ func (h GetListingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	l, err := h.Store.GetByID(r.Context(), id)
+
+	key := fmt.Sprintf("listing:%d", id)
+	if ok, _ := h.Cache.Get(r.Context(), key, &l); ok {
+		w.Header().Set("X-Cache", "HIT")
+		json.NewEncoder(w).Encode(l)
+		return
+	}
+
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -41,6 +53,7 @@ func (h GetListingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	_ = h.Cache.Set(r.Context(), key, l)
+	w.Header().Set("X-Cache", "MISS")
 	_ = json.NewEncoder(w).Encode(l)
 }

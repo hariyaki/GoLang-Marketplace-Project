@@ -44,6 +44,10 @@ paths:
       responses:
         "200":
           description: OK
+          headers:
+            X-Cache:
+              description: HIT or MISS
+              type: string
           schema:
             items:
               $ref: '#/definitions/db.Listing'
@@ -97,6 +101,10 @@ paths:
       responses:
         "200":
           description: OK
+          headers:
+            X-Cache:
+              description: HIT or MISS
+              type: string
           schema:
             $ref: '#/definitions/db.Listing'
         "400":

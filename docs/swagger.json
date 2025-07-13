@@ -37,6 +37,12 @@
                             "items": {
                                 "$ref": "#/definitions/db.Listing"
                             }
+                        },
+                        "headers": {
+                            "X-Cache": {
+                                "type": "string",
+                                "description": "HIT or MISS"
+                            }
                         }
                     },
                     "500": {
@@ -115,6 +121,12 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/db.Listing"
+                        },
+                        "headers": {
+                            "X-Cache": {
+                                "type": "string",
+                                "description": "HIT or MISS"
+                            }
                         }
                     },
                     "400": {

@@ -43,6 +43,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/db.Listing"
                             }
+                        },
+                        "headers": {
+                            "X-Cache": {
+                                "type": "string",
+                                "description": "HIT or MISS"
+                            }
                         }
                     },
                     "500": {
@@ -121,6 +127,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/db.Listing"
+                        },
+                        "headers": {
+                            "X-Cache": {
+                                "type": "string",
+                                "description": "HIT or MISS"
+                            }
                         }
                     },
                     "400": {

@@ -22,6 +22,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 
 	_ "github.com/hariyaki/GoLang-Marketplace-Project/docs"
+	"github.com/hariyaki/GoLang-Marketplace-Project/internal/cache"
 )
 
 func main() {
@@ -35,6 +36,11 @@ func main() {
 	}
 	defer database.Close()
 
+	//Setup Cache
+	cacheTTL := 30 * time.Second
+	redisAddr := os.Getenv("REDIS_ADDR")
+	cacher := cache.New(redisAddr, cacheTTL)
+
 	//Set up HTTP handlers
 	mux := http.NewServeMux()
 
@@ -46,20 +52,31 @@ func main() {
 	mux.Handle("/listings", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			handlers.PostListingHandler{Store: store}.ServeHTTP(w, r)
+			handlers.PostListingHandler{
+				Store: store,
+			}.ServeHTTP(w, r)
+
 		case http.MethodGet:
-			handlers.GetListingsHandler{Store: store}.ServeHTTP(w, r)
+			handlers.GetListingsHandler{
+				Store: store,
+				Cache: cacher,
+			}.ServeHTTP(w, r)
+
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
 
+	//Single Listing GET
 	mux.Handle("/listings/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		handlers.GetListingHandler{Store: store}.ServeHTTP(w, r)
+		handlers.GetListingHandler{
+			Store: store,
+			Cache: cacher,
+		}.ServeHTTP(w, r)
 	}))
 
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
