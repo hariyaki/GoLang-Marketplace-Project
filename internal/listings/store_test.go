@@ -51,7 +51,14 @@ func TestStore_List(t *testing.T) {
 		"SELECT id, title, description, price_jpy, created_at FROM listings ORDER BY created_at DESC;",
 	)).WillReturnRows(rows)
 
-	got, err := store.List(context.Background())
+	opts := listings.ListOpts{
+		Query:  "t1",
+		Limit:  2,
+		Offset: 0,
+		Sort:   "price_asc",
+	}
+
+	got, err := store.List(context.Background(), opts)
 	require.NoError(t, err)
 	require.Len(t, got, 2)
 	require.Equal(t, int64(1), got[0].ID)

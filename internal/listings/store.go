@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/db"
@@ -20,6 +21,14 @@ var _ = fmt.Errorf // ensure fmt is imported even if not used elsewhere
 type Store struct {
 	DB *sql.DB
 }
+
+type ListOpts struct {
+	Query	string
+	Limit	int
+	Offset	int
+	Sort	string
+}
+
 
 func NewStore(db *sql.DB) *Store { return &Store{DB: db} }
 
@@ -75,39 +84,52 @@ func (s *Store) Create(ctx context.Context, l db.Listing) (db.Listing, error) {
 }
 
 // List returns all listings ordered by created_at desc and handles created_at scanning
-func (s *Store) List(ctx context.Context) ([]db.Listing, error) {
-	const q = `
-        SELECT id, title, description, price_jpy, created_at
+func (s *Store) List(ctx context.Context, o ListOpts) ([]db.Listing, error) {
+	var (
+		args	[]any
+		sb		strings.Builder
+	)
+	sb.WriteString(`
+		SELECT id,title,description,price_jpy,image_url,created_at
         FROM listings
-        ORDER BY created_at DESC;
-    `
+	`)
 
-	rows, err := s.DB.QueryContext(ctx, q)
+	if o.Query != "" {
+		args = append(args, o.Query)
+		sb.WriteString(` WHERE title ILIKE '%'||$1||'%'`)
+	}
+
+	switch o.Sort {
+	case "price_asc":
+		sb.WriteString(` ORDER BY price_jpy ASC`)
+	case "price_desc":
+		sb.WriteString(` ORDER BY price_jpy DESC`)
+	default:
+		sb.WriteString(` ORDER BY created_at DESC`)
+	}
+
+	limPos := len(args) + 1
+	offPos := limPos + 1
+	args = append(args, o.Limit, o.Offset)
+	sb.WriteString(fmt.Sprintf(` LIMIT $%d OFFSET $%d`, limPos, offPos))
+
+	rows, err := s.DB.QueryContext(ctx, sb.String(), args...)
 	if err != nil {
-		return nil, fmt.Errorf("query listings: %w", err)
+		return nil, err
 	}
 	defer rows.Close()
 
 	var out []db.Listing
 	for rows.Next() {
 		var l db.Listing
-		var rawCreated interface{}
 
-		if err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.PriceJPY, &rawCreated); err != nil {
-			return nil, fmt.Errorf("scan listing: %w", err)
-		}
-
-		t, err := parseCreated(rawCreated)
-		if err != nil {
+		if err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.PriceJPY, &l.ImageURL, &l.CreatedAt); err != nil {
 			return nil, err
 		}
-		l.CreatedAt = t
 		out = append(out, l)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %w", err)
-	}
-	return out, nil
+
+	return out, rows.Err()
 }
 
 // GetByID returns either a single listing or sql.ErrNoRows

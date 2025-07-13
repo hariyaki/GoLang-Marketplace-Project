@@ -2,6 +2,7 @@
 │   └── workflows
 │       └── ci.yml
 │
+├── uploads/
 ├── .vscode
 │   └── settings.json
 │
@@ -15,12 +16,15 @@
 │   └── swagger.yaml
 │
 ├── internal
+│   ├── storage
+│   │   └── fs.go
 │   ├── cache
 │   │   └── cache.go
 │   ├── db
 │   │   ├── db.go
 │   │   └── models.go
 │   ├── handlers
+│   │   ├── put_image.go
 │   │   ├── get_listing.go
 │   │   ├── get_listings.go
 │   │   ├── get_listings_test.go
@@ -35,7 +39,8 @@
 │   ├── 0001_create_listings.up.sql
 │   ├── 0001_create_listings.down.sql
 │   ├── 0002_title_trgm_index.up.sql
-│   └── 0002_title_trgm_index.down.sql
+│   ├── 0002_title_trgm_index.down.sql
+│   └── 0003_add_image_url.up|down.sql
 │
 ├── Makefile
 ├── .dockerignore
