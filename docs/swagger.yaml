@@ -34,12 +34,24 @@ info:
 paths:
   /listings:
     get:
-      description: When the optional **q** query parameter is supplied, the results
-        are filtered (case-insensitive substring match on *title*).
       parameters:
-      - description: Title search keyword
+      - description: search keyword
         in: query
         name: q
+        type: string
+      - description: max results (1-100)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: offset for pagination
+        in: query
+        name: offset
+        type: integer
+      - description: new|price_asc|price_desc
+        in: query
+        name: sort
         type: string
       produces:
       - application/json
@@ -55,10 +67,10 @@ paths:
               $ref: '#/definitions/db.Listing'
             type: array
         "500":
-          description: database error
+          description: Internal Server Error
           schema:
             type: string
-      summary: List all listings or search by title
+      summary: List or search listings
       tags:
       - listings
     post:

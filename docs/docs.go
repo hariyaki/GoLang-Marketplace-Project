@@ -19,19 +19,38 @@ const docTemplate = `{
     "paths": {
         "/listings": {
             "get": {
-                "description": "When the optional **q** query parameter is supplied, the results are filtered (case-insensitive substring match on *title*).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "listings"
                 ],
-                "summary": "List all listings or search by title",
+                "summary": "List or search listings",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Title search keyword",
+                        "description": "search keyword",
                         "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "max results (1-100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "new|price_asc|price_desc",
+                        "name": "sort",
                         "in": "query"
                     }
                 ],
@@ -52,7 +71,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "database error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
