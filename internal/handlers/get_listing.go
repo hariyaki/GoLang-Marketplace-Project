@@ -13,6 +13,16 @@ type GetListingHandler struct {
 	Store *listings.Store
 }
 
+// GetListing godoc
+// @Summary      Retrieve a single listing
+// @Tags         listings
+// @Produce      json
+// @Param        id   path      int  true  "Listing ID"
+// @Success      200  {object}  db.Listing
+// @Failure      400  {string}  string  "invalid id"
+// @Failure      404  {string}  string  "not found"
+// @Failure      500  {string}  string  "database error"
+// @Router       /listings/{id} [get]
 func (h GetListingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/listings/")
 	id, err := strconv.ParseInt(idStr, 10, 64)

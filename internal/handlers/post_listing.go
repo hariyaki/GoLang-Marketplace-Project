@@ -18,6 +18,17 @@ type postListingRequest struct {
 	PriceJPY    int64  `json:"price_jpy"`
 }
 
+// CreateListing godoc
+// @Summary      Create a new listing
+// @Description  Inserts a listing row and returns the created object.
+// @Tags         listings
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      postListingRequest  true  "Listing payload"
+// @Success      201      {object}  db.Listing
+// @Failure      400      {string}  string  "invalid JSON or missing fields"
+// @Failure      500      {string}  string  "database error"
+// @Router       /listings [post]
 func (h PostListingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req postListingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

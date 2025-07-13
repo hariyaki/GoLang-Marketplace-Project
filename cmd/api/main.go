@@ -1,10 +1,14 @@
-// cmd/api/main.go
+// @title          Marketplace API
+// @version        0.1
+// @description    Simple product listing service for GoLang practice.
+// @contact.name   Harrison Lisk
+// @host           localhost:8080
+// @BasePath       /
 package main
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +19,7 @@ import (
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/db"
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/handlers"
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/listings"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
@@ -31,9 +36,7 @@ func main() {
 	//Set up HTTP handlers
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "ok")
-	})
+	mux.Handle("/healthz", handlers.HealthHandler{})
 
 	// Handle listings request
 	// Post = create
@@ -56,6 +59,8 @@ func main() {
 		}
 		handlers.GetListingHandler{Store: store}.ServeHTTP(w, r)
 	}))
+
+	mux.Handle("/docs/", httpSwagger.WrapHandler)
 
 	//Create the server struct
 	server := &http.Server{
