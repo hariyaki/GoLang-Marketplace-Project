@@ -7,5 +7,6 @@ type Listing struct {
 	Title       string    `db:"title" json:"title"`
 	Description string    `db:"description" json:"description"`
 	PriceJPY    int64     `db:"price_jpy" json:"price_jpy"`
+	ImageURL    *string   `db:"image_url"   json:"image_url,omitempty"`
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 }

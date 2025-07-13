@@ -4,6 +4,7 @@ package listings
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -143,4 +144,19 @@ func (s *Store) ListByQuery(ctx context.Context, qstr string) ([]db.Listing, err
 		out = append(out, l)
 	}
 	return out, rows.Err()
+}
+
+func (s *Store) UpdateImage(ctx context.Context, id int64, url string) (db.Listing, error) {
+	const q = `
+		UPDATE listings SET image_url=$2
+		WHERE id=$1
+		RETURNING id,title,description,price_jpy,image_url,created_at`
+	var l db.Listing
+	err := s.DB.QueryRowContext(ctx, q, id, url).
+		Scan(&l.ID, &l.Title, &l.Description, &l.PriceJPY, &l.ImageURL, &l.CreatedAt)
+	return l, err
+}
+
+func IsNotFound(err error) bool {
+	return errors.Is(err, sql.ErrNoRows)
 }

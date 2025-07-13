@@ -1,33 +1,47 @@
+├── .github
+│   └── workflows
+│       └── ci.yml
+│
+├── .vscode
+│   └── settings.json
+│
 ├── cmd
 │   └── api
 │       └── main.go
 │
+├── docs
+│   ├── docs.go
+│   ├── swagger.json
+│   └── swagger.yaml
+│
 ├── internal
+│   ├── cache
+│   │   └── cache.go
 │   ├── db
 │   │   ├── db.go
 │   │   └── models.go
-│   │
 │   ├── handlers
 │   │   ├── get_listing.go
 │   │   ├── get_listings.go
 │   │   ├── get_listings_test.go
 │   │   ├── post_listing.go
-│   │   └── post_listing_test.go
-│   │
+│   │   ├── post_listing_test.go
+│   │   └── health.go
 │   └── listings
 │       ├── store.go
 │       └── store_test.go
 │
 ├── migrations
-│   ├── 0001_create_listings.down.sql
 │   ├── 0001_create_listings.up.sql
-│   ├── 0002_title_trgm_index.down.sql
-│   └── 0002_title_trgm_index.up.sql
+│   ├── 0001_create_listings.down.sql
+│   ├── 0002_title_trgm_index.up.sql
+│   └── 0002_title_trgm_index.down.sql
 │
+├── Makefile
 ├── .dockerignore
 ├── .gitignore
-├── docker-compose.debug.yml
 ├── docker-compose.yml
+├── docker-compose.debug.yml
 ├── Dockerfile
 ├── go.mod
 ├── go.sum
