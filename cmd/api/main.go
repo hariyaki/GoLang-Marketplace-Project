@@ -80,6 +80,7 @@ func main() {
 	}))
 
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
+	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
 	//Create the server struct
 	server := &http.Server{
