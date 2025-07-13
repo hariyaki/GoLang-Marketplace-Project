@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -23,6 +24,7 @@ import (
 
 	_ "github.com/hariyaki/GoLang-Marketplace-Project/docs"
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/cache"
+	"github.com/hariyaki/GoLang-Marketplace-Project/internal/storage"
 )
 
 func main() {
@@ -69,6 +71,14 @@ func main() {
 
 	//Single Listing GET
 	mux.Handle("/listings/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/image") && r.Method == http.MethodPut {
+			handlers.PutImageHandler{
+				Store:   store,
+				Storage: &storage.FS{Base: "./uploads"},
+			}.ServeHTTP(w, r)
+			return
+		}
+
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return

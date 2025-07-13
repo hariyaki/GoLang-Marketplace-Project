@@ -11,6 +11,10 @@ type FS struct {
 	Base string
 }
 
+func NewFS(base string) *FS {
+	return &FS{Base: base}
+}
+
 func (f FS) Save(ctx context.Context, name string, r io.Reader) (string, error) {
 	path := filepath.Join(f.Base, name)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {

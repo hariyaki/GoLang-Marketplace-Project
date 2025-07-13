@@ -170,6 +170,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "price_jpy": {
                     "type": "integer"
                 },
