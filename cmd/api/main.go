@@ -20,6 +20,8 @@ import (
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/handlers"
 	"github.com/hariyaki/GoLang-Marketplace-Project/internal/listings"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
+
+	_ "github.com/hariyaki/GoLang-Marketplace-Project/docs"
 )
 
 func main() {

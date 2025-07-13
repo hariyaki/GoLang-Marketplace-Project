@@ -26,13 +26,22 @@ services:
       - up
     restart: on-failure
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", ""]
+
   api:
     build: .
     image: golang-marketplace-api:dev
     depends_on:
+      redis:
+        condition: service_started
       migrate:
         condition: service_completed_successfully
     environment:
       DB_DSN: postgres://market:secret@db:5432/marketplace?sslmode=disable
+      REDIS_ADDR: redis:6379
     ports:
       - "8080:8080"
