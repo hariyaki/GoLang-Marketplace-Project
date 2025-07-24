@@ -1,5 +1,5 @@
 ﻿Folder PATH listing for volume Windows
-Volume serial number is 00740069 C0F1:3942
+Volume serial number is C0F1-3942
 C:.
 |   .dockerignore
 |   docker-compose.debug.yml

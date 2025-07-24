@@ -94,7 +94,6 @@ func main() {
 	}))
 
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
-	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
 	wrapped := handlers.AllowCORS(mux)
 
