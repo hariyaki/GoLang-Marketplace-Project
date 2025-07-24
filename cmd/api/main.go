@@ -92,10 +92,12 @@ func main() {
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
+	wrapped := handlers.AllowCORS(mux)
+
 	//Create the server struct
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      mux,
+		Handler:      wrapped,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
