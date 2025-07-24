@@ -11,3 +11,11 @@ test:
 
 build:
 	docker build -t golang-marketplace-api:dev .
+
+.PHONY: schema
+schema:
+ifeq ($(OS),Windows_NT)
+	powershell -NoProfile -ExecutionPolicy Bypass -File scripts/gen-schema.ps1
+else
+	bash scripts/gen-schema.sh
+endif
