@@ -48,6 +48,10 @@ func main() {
 
 	mux.Handle("/healthz", handlers.HealthHandler{})
 
+	mux.Handle("/uploads/",
+		http.StripPrefix("/uploads/",
+			http.FileServer(http.Dir("./uploads"))))
+
 	// Handle listings request
 	// Post = create
 	// Get = list / search

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ChangeEvent } from 'react'
+import { API } from './lib/api'
 
 interface Listing {
   id: number
@@ -10,20 +11,27 @@ interface Listing {
   created_at: string
 }
 
-const API = import.meta.env.VITE_API as string || 'http://localhost:8080'
-
 export default function App() {
   const [listings, setListings] = useState<Listing[]>([])
   const [form, setForm] = useState({ title: '', description: '', price_jpy: '' })
   const [msg, setMsg] = useState('')
 
+  // ---------------- fetch helpers ----------------
   const fetchListings = async () => {
     const res = await fetch(`${API}/listings`)
     setListings(await res.json())
   }
 
+  const uploadImage = async (id: number, file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    await fetch(`${API}/listings/${id}/image`, { method: 'PUT', body: fd })
+    fetchListings()
+  }
+
   useEffect(() => { fetchListings() }, [])
 
+  // ---------------- form submit ----------------
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const res = await fetch(`${API}/listings`, {
@@ -40,11 +48,12 @@ export default function App() {
     }
   }
 
+  // ---------------- render ----------------
   return (
-    <div style={{ maxWidth: 600, margin: '2rem auto', fontFamily: 'sans-serif' }}>
-      <h1>Go Marketplace</h1>
+    <div style={{ maxWidth: 700, margin: '2rem auto', fontFamily: 'sans-serif' }}>
+      <h1>Go Marketplace</h1>
 
-      <form onSubmit={submit}>
+      <form onSubmit={submit} style={{ marginBottom: '1rem' }}>
         <input
           placeholder="Title"
           required
@@ -72,11 +81,30 @@ export default function App() {
       {msg && <p>{msg}</p>}
 
       <h2>Listings</h2>
-      <ul>
+      <ul style={{ listStyle: 'none', padding: 0 }}>
         {listings.map(l => (
-          <li key={l.id}>
+          <li key={l.id} style={{ marginBottom: '1.5rem' }}>
+            {l.image_url && (
+              <img
+                src={`${API}${l.image_url}`}
+                alt={l.title}
+                width={150}
+                style={{ display: 'block', marginBottom: '0.5rem' }}
+              />
+            )}
+
             <strong>{l.title}</strong> – ¥{l.price_jpy}<br />
             {l.description}
+            <br />
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                const f = e.target.files?.[0]
+                if (f) uploadImage(l.id, f)
+              }}
+            />
           </li>
         ))}
       </ul>

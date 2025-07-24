@@ -1,0 +1,1 @@
+export const API = import.meta.env.VITE_API as string || 'http://localhost:8080';
